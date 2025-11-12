@@ -1,3 +1,130 @@
+// Navigation Handler
+document.addEventListener("DOMContentLoaded", function () {
+  const navbar = document.getElementById("navbar");
+  const navToggle = document.getElementById("navToggle");
+  const navMenu = document.getElementById("navMenu");
+  const navBackdrop = document.getElementById("navBackdrop");
+  const navLinks = document.querySelectorAll(".nav-link");
+  const sections = document.querySelectorAll("section[id]");
+
+  // Mobile menu toggle
+  navToggle.addEventListener("click", function () {
+    const isActive = navMenu.classList.toggle("active");
+    navToggle.classList.toggle("active");
+    navBackdrop.classList.toggle("active", isActive);
+    document.body.style.overflow = isActive ? "hidden" : "";
+  });
+
+  // Close mobile menu when clicking a link
+  navLinks.forEach((link) => {
+    link.addEventListener("click", function () {
+      if (window.innerWidth <= 968) {
+        navToggle.classList.remove("active");
+        navMenu.classList.remove("active");
+        navBackdrop.classList.remove("active");
+        document.body.style.overflow = "";
+      }
+    });
+  });
+
+  // Close mobile menu when clicking backdrop or outside
+  navBackdrop.addEventListener("click", function () {
+    if (window.innerWidth <= 968) {
+      navToggle.classList.remove("active");
+      navMenu.classList.remove("active");
+      navBackdrop.classList.remove("active");
+      document.body.style.overflow = "";
+    }
+  });
+
+  // Close mobile menu when clicking outside
+  document.addEventListener("click", function (e) {
+    if (
+      window.innerWidth <= 968 &&
+      navMenu.classList.contains("active") &&
+      !navMenu.contains(e.target) &&
+      !navToggle.contains(e.target) &&
+      !navBackdrop.contains(e.target)
+    ) {
+      navToggle.classList.remove("active");
+      navMenu.classList.remove("active");
+      navBackdrop.classList.remove("active");
+      document.body.style.overflow = "";
+    }
+  });
+
+  // Navbar scroll effect
+  let lastScroll = 0;
+  window.addEventListener("scroll", function () {
+    const currentScroll = window.pageYOffset;
+
+    if (currentScroll > 50) {
+      navbar.classList.add("scrolled");
+    } else {
+      navbar.classList.remove("scrolled");
+    }
+
+    lastScroll = currentScroll;
+  });
+
+  // Active section highlighting on scroll
+  function highlightActiveSection() {
+    const scrollY = window.pageYOffset;
+    const navbarHeight = navbar.offsetHeight;
+    const offset = navbarHeight + 20; // Add some offset for better detection
+
+    sections.forEach((section) => {
+      const sectionHeight = section.offsetHeight;
+      const sectionTop = section.offsetTop - offset;
+      const sectionId = section.getAttribute("id");
+
+      if (scrollY > sectionTop && scrollY <= sectionTop + sectionHeight) {
+        navLinks.forEach((link) => {
+          link.classList.remove("active");
+          if (link.getAttribute("href") === `#${sectionId}`) {
+            link.classList.add("active");
+          }
+        });
+      }
+    });
+
+    // Handle hero section (top of page)
+    if (scrollY < navbarHeight + 50) {
+      navLinks.forEach((link) => {
+        link.classList.remove("active");
+        if (link.getAttribute("href") === "#hero") {
+          link.classList.add("active");
+        }
+      });
+    }
+  }
+
+  // Smooth scroll for navigation links
+  navLinks.forEach((link) => {
+    link.addEventListener("click", function (e) {
+      e.preventDefault();
+      const targetId = this.getAttribute("href");
+      const targetSection = document.querySelector(targetId);
+
+      if (targetSection) {
+        // Get the navbar height
+        const navbarHeight = navbar.offsetHeight;
+        // Calculate the position accounting for navbar
+        const offsetTop = targetSection.offsetTop - navbarHeight;
+        
+        window.scrollTo({
+          top: Math.max(0, offsetTop), // Ensure we don't scroll to negative values
+          behavior: "smooth",
+        });
+      }
+    });
+  });
+
+  // Update active section on scroll
+  window.addEventListener("scroll", highlightActiveSection);
+  highlightActiveSection(); // Initial call
+});
+
 // Custom Cursor
 document.addEventListener("DOMContentLoaded", function () {
   const cursor = document.querySelector(".custom-cursor");
