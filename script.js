@@ -224,6 +224,12 @@ document.addEventListener("DOMContentLoaded", function () {
   const modalTitle = document.getElementById("modalProjectName");
   const closeBtn = document.querySelector(".modal-close-btn");
   const viewButtons = document.querySelectorAll(".project-view-btn");
+  const projectCards = document.querySelectorAll(".project-card");
+
+  // Detect if device is mobile
+  function isMobileDevice() {
+    return window.innerWidth <= 768;
+  }
 
   // Function to open modal
   function openModal(imageSrc, projectName) {
@@ -240,6 +246,60 @@ document.addEventListener("DOMContentLoaded", function () {
     document.body.style.overflow = ""; // Restore scrolling
   }
 
+  // Handle project card clicks on mobile devices
+  projectCards.forEach((card) => {
+    card.addEventListener("click", function (e) {
+      // Only handle on mobile devices
+      if (!isMobileDevice()) {
+        return;
+      }
+
+      // Don't trigger if clicking the view button itself or overlay
+      if (
+        e.target.classList.contains("project-view-btn") ||
+        e.target.closest(".project-view-btn") ||
+        e.target.closest(".project-overlay")
+      ) {
+        return;
+      }
+
+      // Remove active class from all cards
+      projectCards.forEach((c) => c.classList.remove("active"));
+
+      // Toggle active class on clicked card
+      if (this.classList.contains("active")) {
+        this.classList.remove("active");
+      } else {
+        this.classList.add("active");
+      }
+    });
+  });
+
+  // Handle window resize to update behavior
+  let resizeTimer;
+  window.addEventListener("resize", function () {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(function () {
+      // If switching from mobile to desktop, remove active classes
+      if (!isMobileDevice()) {
+        projectCards.forEach((card) => card.classList.remove("active"));
+      }
+    }, 250);
+  });
+
+  // Close active card when clicking outside on mobile
+  if (isMobileDevice()) {
+    document.addEventListener("click", function (e) {
+      if (!isMobileDevice()) return;
+
+      // Check if click is outside all project cards
+      const clickedCard = e.target.closest(".project-card");
+      if (!clickedCard) {
+        projectCards.forEach((card) => card.classList.remove("active"));
+      }
+    });
+  }
+
   // Add click event to all view buttons
   viewButtons.forEach((button) => {
     button.addEventListener("click", function (e) {
@@ -247,6 +307,16 @@ document.addEventListener("DOMContentLoaded", function () {
       const imageSrc = this.getAttribute("data-image");
       const projectName = this.getAttribute("data-name");
       openModal(imageSrc, projectName);
+
+      // On mobile, remove active class after opening modal
+      if (isMobileDevice()) {
+        const card = this.closest(".project-card");
+        if (card) {
+          setTimeout(() => {
+            card.classList.remove("active");
+          }, 300);
+        }
+      }
     });
   });
 
