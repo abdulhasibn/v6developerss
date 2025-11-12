@@ -216,3 +216,57 @@ document.addEventListener("DOMContentLoaded", function () {
     );
   });
 });
+
+// Project Modal Handler
+document.addEventListener("DOMContentLoaded", function () {
+  const modal = document.getElementById("projectModal");
+  const modalImage = document.getElementById("modalProjectImage");
+  const modalTitle = document.getElementById("modalProjectName");
+  const closeBtn = document.querySelector(".modal-close-btn");
+  const viewButtons = document.querySelectorAll(".project-view-btn");
+
+  // Function to open modal
+  function openModal(imageSrc, projectName) {
+    modalImage.src = imageSrc;
+    modalImage.alt = projectName;
+    modalTitle.textContent = projectName;
+    modal.classList.add("active");
+    document.body.style.overflow = "hidden"; // Prevent background scrolling
+  }
+
+  // Function to close modal
+  function closeModal() {
+    modal.classList.remove("active");
+    document.body.style.overflow = ""; // Restore scrolling
+  }
+
+  // Add click event to all view buttons
+  viewButtons.forEach((button) => {
+    button.addEventListener("click", function (e) {
+      e.stopPropagation(); // Prevent card click event
+      const imageSrc = this.getAttribute("data-image");
+      const projectName = this.getAttribute("data-name");
+      openModal(imageSrc, projectName);
+    });
+  });
+
+  // Close modal when close button is clicked
+  closeBtn.addEventListener("click", closeModal);
+
+  // Close modal when overlay is clicked
+  const modalOverlay = document.querySelector(".modal-overlay");
+  modalOverlay.addEventListener("click", closeModal);
+
+  // Close modal with Escape key
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape" && modal.classList.contains("active")) {
+      closeModal();
+    }
+  });
+
+  // Prevent modal from closing when clicking inside modal container
+  const modalContainer = document.querySelector(".modal-container");
+  modalContainer.addEventListener("click", function (e) {
+    e.stopPropagation();
+  });
+});
