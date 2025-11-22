@@ -125,61 +125,6 @@ document.addEventListener("DOMContentLoaded", function () {
   highlightActiveSection(); // Initial call
 });
 
-// Custom Cursor
-document.addEventListener("DOMContentLoaded", function () {
-  const cursor = document.querySelector(".custom-cursor");
-  const cursorDot = document.querySelector(".cursor-dot");
-  const cursorCircle = document.querySelector(".cursor-circle");
-
-  let mouseX = 0;
-  let mouseY = 0;
-  let cursorX = 0;
-  let cursorY = 0;
-
-  // Only enable on desktop
-  if (window.innerWidth > 768) {
-    // Update cursor position on mouse move
-    document.addEventListener("mousemove", (e) => {
-      mouseX = e.clientX;
-      mouseY = e.clientY;
-    });
-
-    // Smooth cursor animation with premium easing
-    function animateCursor() {
-      // Smooth interpolation for premium feel (lower value = smoother)
-      const easeFactor = 0.15;
-      cursorX += (mouseX - cursorX) * easeFactor;
-      cursorY += (mouseY - cursorY) * easeFactor;
-
-      cursor.style.left = cursorX + "px";
-      cursor.style.top = cursorY + "px";
-
-      requestAnimationFrame(animateCursor);
-    }
-
-    animateCursor();
-
-    // Hover effects on interactive elements
-    const interactiveElements = document.querySelectorAll(
-      "a, button, input, textarea, .cta-button, .submit-button"
-    );
-
-    interactiveElements.forEach((el) => {
-      el.addEventListener("mouseenter", () => {
-        cursorCircle.style.width = "50px";
-        cursorCircle.style.height = "50px";
-        cursorCircle.style.opacity = "0.8";
-      });
-
-      el.addEventListener("mouseleave", () => {
-        cursorCircle.style.width = "40px";
-        cursorCircle.style.height = "40px";
-        cursorCircle.style.opacity = "1";
-      });
-    });
-  }
-});
-
 // Typewriter Effect
 document.addEventListener("DOMContentLoaded", function () {
   const typewriterText = document.getElementById("typewriter-text");
@@ -348,9 +293,11 @@ document.addEventListener("DOMContentLoaded", function () {
 document.addEventListener("DOMContentLoaded", function () {
   const modal = document.getElementById("projectModal");
   const modalImage = document.getElementById("modalProjectImage");
+  const modalVideo = document.getElementById("modalProjectVideo");
   const modalTitle = document.getElementById("modalProjectName");
   const closeBtn = document.querySelector(".modal-close-btn");
   const viewButtons = document.querySelectorAll(".project-view-btn");
+  const playButtons = document.querySelectorAll(".project-play-btn");
   const projectCards = document.querySelectorAll(".project-card");
 
   // Detect if device is mobile
@@ -358,8 +305,16 @@ document.addEventListener("DOMContentLoaded", function () {
     return window.innerWidth <= 768;
   }
 
-  // Function to open modal
+  // Function to open modal with image
   function openModal(imageSrc, projectName) {
+    // Hide video, show image
+    modalVideo.style.display = "none";
+    modalVideo.pause();
+    modalVideo.currentTime = 0;
+    modalImage.style.display = "block";
+    modalImage.classList.add("active");
+    modalVideo.classList.remove("active");
+
     modalImage.src = imageSrc;
     modalImage.alt = projectName;
     modalTitle.textContent = projectName;
@@ -367,10 +322,35 @@ document.addEventListener("DOMContentLoaded", function () {
     document.body.style.overflow = "hidden"; // Prevent background scrolling
   }
 
+  // Function to open modal with video
+  function openModalWithVideo(imageSrc, videoSrc, projectName) {
+    // Hide image, show video
+    modalImage.style.display = "none";
+    modalImage.classList.remove("active");
+    modalVideo.style.display = "block";
+    modalVideo.classList.add("active");
+
+    // Set video source
+    modalVideo.src = videoSrc;
+    modalTitle.textContent = projectName;
+    modal.classList.add("active");
+    document.body.style.overflow = "hidden"; // Prevent background scrolling
+
+    // Load and play video
+    modalVideo.load();
+  }
+
   // Function to close modal
   function closeModal() {
     modal.classList.remove("active");
     document.body.style.overflow = ""; // Restore scrolling
+
+    // Pause and reset video
+    if (modalVideo) {
+      modalVideo.pause();
+      modalVideo.currentTime = 0;
+      modalVideo.src = "";
+    }
   }
 
   // Handle project card clicks on mobile devices
@@ -381,10 +361,12 @@ document.addEventListener("DOMContentLoaded", function () {
         return;
       }
 
-      // Don't trigger if clicking the view button itself or overlay
+      // Don't trigger if clicking the view button, play button, or overlay
       if (
         e.target.classList.contains("project-view-btn") ||
         e.target.closest(".project-view-btn") ||
+        e.target.classList.contains("project-play-btn") ||
+        e.target.closest(".project-play-btn") ||
         e.target.closest(".project-overlay")
       ) {
         return;
@@ -427,13 +409,40 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  // Add click event to all view buttons
+  // Add click event to all view buttons (for images)
   viewButtons.forEach((button) => {
     button.addEventListener("click", function (e) {
       e.stopPropagation(); // Prevent card click event
       const imageSrc = this.getAttribute("data-image");
       const projectName = this.getAttribute("data-name");
       openModal(imageSrc, projectName);
+
+      // On mobile, remove active class after opening modal
+      if (isMobileDevice()) {
+        const card = this.closest(".project-card");
+        if (card) {
+          setTimeout(() => {
+            card.classList.remove("active");
+          }, 300);
+        }
+      }
+    });
+  });
+
+  // Add click event to all play buttons (for videos)
+  playButtons.forEach((button) => {
+    button.addEventListener("click", function (e) {
+      e.stopPropagation(); // Prevent card click event
+      const imageSrc = this.getAttribute("data-image");
+      const videoSrc = this.getAttribute("data-video");
+      const projectName = this.getAttribute("data-name");
+
+      if (videoSrc) {
+        openModalWithVideo(imageSrc, videoSrc, projectName);
+      } else {
+        // Fallback to image if no video
+        openModal(imageSrc, projectName);
+      }
 
       // On mobile, remove active class after opening modal
       if (isMobileDevice()) {
